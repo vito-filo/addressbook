@@ -25,6 +25,8 @@ spec:
       labels:
         app: addressbook-frontend
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: frontend
           image: ghcr.io/vito-filo/addressbook/addressbook-frontend:latest
