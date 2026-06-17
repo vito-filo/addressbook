@@ -63,6 +63,28 @@ The UI will be available at `http://localhost:5173`.
 
 ---
 
+## Run with Docker Compose
+
+The quickest way to run the full stack locally (PostgreSQL + backend + frontend) without installing Python or Node.js.
+
+```bash
+docker compose up --build
+```
+
+The app will be available at `http://localhost`. To stop it:
+
+```bash
+docker compose down
+```
+
+To also delete the database volume on teardown:
+
+```bash
+docker compose down -v
+```
+
+---
+
 ## Environment Variables
 
 ### Backend
