@@ -6,82 +6,62 @@ A web application to manage a phone address book — create, edit, and delete co
 
 ## Tech Stack
 
-| Layer     | Technology                                           |
-|-----------|------------------------------------------------------|
-| Backend   | Python 3.11, FastAPI, SQLAlchemy (async), asyncpg   |
-| Frontend  | React 18, TypeScript (strict), Vite, shadcn/ui, Tailwind CSS |
-| Database  | PostgreSQL 16                                        |
-| Container | Docker (multi-stage for frontend), nginx             |
-| Orchestration | Kubernetes (k3s), ArgoCD, Traefik Ingress, Cloudflare Tunnel |
+| Layer    | Technology                                                   |
+| -------- | ------------------------------------------------------------ |
+| Backend  | Python 3.13, FastAPI, SQLAlchemy (async), asyncpg            |
+| Frontend | React 18, TypeScript (strict), Vite, shadcn/ui, Tailwind CSS |
+| Database | PostgreSQL 16                                                |
 
 ---
 
-## Prerequisites
+## Run locally with Docker Compose
 
-- Python 3.11+
-- Node.js 20+
-- Docker
-- A running PostgreSQL 16 instance (for local development)
-- `kubectl` + `helm` (for cluster deployment)
-- ArgoCD installed in the cluster (for GitOps deploy)
+The quickest way — no Python or Node.js required.
+
+```bash
+docker compose up --build
+```
+
+The app will be available at `http://localhost`. To stop:
+
+```bash
+docker compose down        # stop
+docker compose down -v     # stop and delete the database volume
+```
 
 ---
 
-## Local Development
+## Manual local development
 
 ### Backend
 
 ```bash
 cd backend
 
-# Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+python3.13 -m venv .venv
+source .venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
 
-# Start the API server (connects to localhost:5432 by default)
+export POSTGRES_USER=addressbook
+export POSTGRES_PASSWORD=addressbook123
+export POSTGRES_HOST=localhost
+export POSTGRES_DB=addressbook
+
 uvicorn main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`.
+API available at `http://localhost:8000`.
 
 ### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start the dev server (proxies /api to http://localhost:8000)
 npm run dev
 ```
 
-The UI will be available at `http://localhost:5173`.
-
----
-
-## Run with Docker Compose
-
-The quickest way to run the full stack locally (PostgreSQL + backend + frontend) without installing Python or Node.js.
-
-```bash
-docker compose up --build
-```
-
-The app will be available at `http://localhost`. To stop it:
-
-```bash
-docker compose down
-```
-
-To also delete the database volume on teardown:
-
-```bash
-docker compose down -v
-```
+UI available at `http://localhost:5173`. The dev server proxies `/api` to `http://localhost:8000`.
 
 ---
 
@@ -89,82 +69,20 @@ docker compose down -v
 
 ### Backend
 
-| Variable        | Default                                                                        | Description                          |
-|-----------------|--------------------------------------------------------------------------------|--------------------------------------|
-| `DATABASE_URL`  | `postgresql+asyncpg://addressbook:addressbook123@localhost:5432/addressbook`   | SQLAlchemy async database URL        |
-| `CORS_ORIGINS`  | `http://localhost:5173`                                                        | Comma-separated allowed CORS origins |
+All four are required — the app crashes on startup if any is missing.
+
+| Variable            | Description       |
+| ------------------- | ----------------- |
+| `POSTGRES_USER`     | Database user     |
+| `POSTGRES_PASSWORD` | Database password |
+| `POSTGRES_HOST`     | Database hostname |
+| `POSTGRES_DB`       | Database name     |
 
 ### Frontend
 
-| Variable        | Default | Description                                     |
-|-----------------|---------|-------------------------------------------------|
-| `VITE_API_URL`  | `/api`  | Base URL for API calls (overridden by Vite proxy in dev) |
-
----
-
-## Build and Push Docker Images
-
-```bash
-# Backend
-docker build -t ghcr.io/vito-filo/addressbook/addressbook-backend:latest ./backend
-docker push ghcr.io/vito-filo/addressbook/addressbook-backend:latest
-
-# Frontend
-docker build -t ghcr.io/vito-filo/addressbook/addressbook-frontend:latest ./frontend
-docker push ghcr.io/vito-filo/addressbook/addressbook-frontend:latest
-```
-
----
-
-## Deploy on k3s with ArgoCD
-
-### First-time setup
-
-1. Build and push the Docker images (see section above).
-5. Create the namespace and the database secret manually (never committed to git):
-
-```bash
-kubectl create namespace addressbook
-kubectl create secret generic addressbook-db-secret \
-  --namespace=addressbook \
-  --from-literal=POSTGRES_DB=addressbook \
-  --from-literal=POSTGRES_USER=addressbook \
-  --from-literal=POSTGRES_PASSWORD=<your-password>
-```
-
-6. Push the code to git, then apply the ArgoCD application:
-
-```bash
-kubectl apply -f argocd/app.yaml
-```
-
-ArgoCD will apply all manifests in `k8s/` automatically. The backend and postgres pods will read credentials from the secret created in step 5.
-
-
-### Updating the application
-
-```bash
-# Rebuild and push new images
-docker build -t ghcr.io/vito-filo/addressbook/addressbook-backend:latest ./backend && \
-docker push ghcr.io/vito-filo/addressbook/addressbook-backend:latest
-
-# Force pod restart (ArgoCD uses :latest tag — must restart to pull new image)
-kubectl rollout restart deployment/addressbook-backend -n addressbook
-kubectl rollout restart deployment/addressbook-frontend -n addressbook
-```
-
-### Checking status
-
-```bash
-# Pod status
-kubectl get pods -n addressbook
-
-# Backend logs
-kubectl logs -f deployment/addressbook-backend -n addressbook
-
-# Frontend logs
-kubectl logs -f deployment/addressbook-frontend -n addressbook
-```
+| Variable       | Default | Description                    |
+| -------------- | ------- | ------------------------------ |
+| `VITE_API_URL` | `/api`  | Base URL used for API requests |
 
 ---
 
@@ -172,13 +90,9 @@ kubectl logs -f deployment/addressbook-frontend -n addressbook
 
 ```
 addressbook/
-├── CLAUDE.md                  ← autonomous implementation instructions
-├── README.md                  ← this file
-├── decisions.md               ← log of all autonomous decisions
-├── docs/
-│   ├── requirements.md        ← functional requirements
-│   ├── style-guide            ← UI style guide
-│   └── deploy.md              ← deployment guide
+├── README.md
+├── DEPLOY.md                  ← k3s / ArgoCD deploy instructions
+├── docker-compose.yml
 ├── backend/
 │   ├── Dockerfile
 │   ├── requirements.txt
@@ -191,12 +105,9 @@ addressbook/
 ├── frontend/
 │   ├── Dockerfile
 │   ├── nginx.conf
-│   ├── package.json
-│   ├── tsconfig.json
 │   ├── vite.config.ts
 │   ├── index.html
 │   └── src/
-│       ├── main.tsx
 │       ├── App.tsx
 │       ├── api/contacts.ts
 │       ├── components/
@@ -211,13 +122,8 @@ addressbook/
 │   ├── postgres.yaml
 │   ├── backend.yaml
 │   ├── frontend.yaml
+│   ├── middleware.yaml
 │   └── ingress.yaml
 └── argocd/
     └── app.yaml
 ```
-
----
-
-## Decisions Log
-
-All autonomous implementation decisions (library choices, error handling strategies, deviations from the requirements) are documented in [`decisions.md`](./decisions.md).
