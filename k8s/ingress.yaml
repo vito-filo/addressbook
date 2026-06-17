@@ -1,0 +1,28 @@
+# ingress.yaml — Traefik Ingress routing /api/* to backend and / to frontend.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: addressbook-ingress
+  namespace: addressbook
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: addressbook.filomenodev.studio
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: addressbook-backend
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: addressbook-frontend
+                port:
+                  number: 80

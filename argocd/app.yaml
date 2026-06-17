@@ -1,0 +1,21 @@
+# app.yaml — ArgoCD Application manifest. Apply once with: kubectl apply -f argocd/app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: addressbook
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/vito-filo/addressbook.git
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: addressbook
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

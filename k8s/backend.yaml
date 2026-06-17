@@ -1,0 +1,50 @@
+# backend.yaml — FastAPI backend Service and Deployment.
+apiVersion: v1
+kind: Service
+metadata:
+  name: addressbook-backend
+  namespace: addressbook
+spec:
+  selector:
+    app: addressbook-backend
+  ports:
+    - port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: addressbook-backend
+  namespace: addressbook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: addressbook-backend
+  template:
+    metadata:
+      labels:
+        app: addressbook-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/vito-filo/addressbook/addressbook-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: addressbook-db-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: addressbook-db-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_HOST
+              value: addressbook-postgres
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: addressbook-db-secret
+                  key: POSTGRES_DB

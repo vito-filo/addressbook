@@ -1,0 +1,49 @@
+# postgres.yaml — PostgreSQL Service and ephemeral Deployment for local development.
+# Note: no PersistentVolumeClaim — data is lost on pod restart (acceptable per deploy.md).
+apiVersion: v1
+kind: Service
+metadata:
+  name: addressbook-postgres
+  namespace: addressbook
+spec:
+  selector:
+    app: addressbook-postgres
+  ports:
+    - port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: addressbook-postgres
+  namespace: addressbook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: addressbook-postgres
+  template:
+    metadata:
+      labels:
+        app: addressbook-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: addressbook-db-secret
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: addressbook-db-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: addressbook-db-secret
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 5432

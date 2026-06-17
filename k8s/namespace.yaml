@@ -1,0 +1,5 @@
+# namespace.yaml — Creates the addressbook Kubernetes namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: addressbook

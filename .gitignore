@@ -1,0 +1,43 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+backend/.venv/
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# ── Environment files (secrets) ───────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+*.swp
+*.swo
+.idea/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+
+# ── Agents ────────────────────────────────────────────────────────────────────
+docs/
+CLAUDE.md
+

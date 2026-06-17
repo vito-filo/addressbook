@@ -1,0 +1,32 @@
+# frontend.yaml — React frontend Service and Deployment (served via nginx).
+apiVersion: v1
+kind: Service
+metadata:
+  name: addressbook-frontend
+  namespace: addressbook
+spec:
+  selector:
+    app: addressbook-frontend
+  ports:
+    - port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: addressbook-frontend
+  namespace: addressbook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: addressbook-frontend
+  template:
+    metadata:
+      labels:
+        app: addressbook-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/vito-filo/addressbook/addressbook-frontend:latest
+          ports:
+            - containerPort: 80
