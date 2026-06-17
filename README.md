@@ -35,6 +35,19 @@ docker compose down -v     # stop and delete the database volume
 
 ### Backend
 
+First, start a PostgreSQL container:
+
+```bash
+docker run -d --name addressbook-postgres \
+  -e POSTGRES_DB=addressbook \
+  -e POSTGRES_USER=addressbook \
+  -e POSTGRES_PASSWORD=addressbook123 \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+Then start the API:
+
 ```bash
 cd backend
 
